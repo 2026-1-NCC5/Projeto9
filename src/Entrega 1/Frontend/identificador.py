@@ -1,72 +1,91 @@
 import cv2
 import numpy as np
 from ultralytics import YOLO
-from collections import Counter
+import requests # Biblioteca para enviar dados ao backend
+import time
 
-# CARREGAR MODELO TREINADO
+ultimo_envio = {}
+
+# --- CONFIGURAÇÕES ---
+BACKEND_URL = "http://127.0.0.1:8000/registrar-contagem/"
+EQUIPE_ATIVA = 1  # ID da equipe que está a operar no momento
+PESO_PADRAO = {   # Estimativa de peso por categoria (exigência do projeto)
+    "Arroz": 1.0,
+    "Feijao": 1.0,
+    "Outros": 0.5
+}
+
+# CARREGAR MODELO
 modelo = YOLO("best.pt")
 
-print("Classes do modelo:", modelo.names)
+# Variável para evitar duplicidade (guarda os IDs já contados nesta sessão)
+ids_enviados = set()
+
+def enviar_ao_backend(classe_nome, confianca):
+    """Envia a contagem de um item individual para o FastAPI."""
+    payload = {
+        "equipa_id": EQUIPE_ATIVA,
+        "tipo_produto": classe_nome,
+        "peso": PESO_PADRAO.get(classe_nome, 0.2),
+        "contagem": 1,
+        "confianca": float(confianca)
+    }
+    try:
+        response = requests.post(BACKEND_URL, json=payload)
+        if response.status_code == 200:
+            print(f"✅ {classe_nome} registrado com sucesso!")
+        else:
+            print(f"❌ Erro ao registrar: {response.text}")
+    except Exception as e:
+        print(f"⚠️ Servidor offline: {e}")
 
 # INICIAR CÂMERA
 camera = cv2.VideoCapture(0)
 camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-if not camera.isOpened():
-    print("Erro: não foi possível abrir a câmera.")
-    exit()
-
-print("Iniciando a câmera... Pressione 'q' para sair.")
+print("Iniciando Integração... Pressione 'q' para sair.")
 
 while True:
     sucesso, frame = camera.read()
+    if not sucesso: break
 
-    if not sucesso:
-        print("Erro fatal: falha ao acessar a câmera.")
-        break
+    # .track mantém o ID do objeto entre os frames (persist=True)
+    resultados = modelo.track(frame, persist=True, conf=0.5)
 
-    # Faz a detecção no frame
-    resultados = modelo(frame, stream=True)
+    print(f"Quantidade de resultados: {len(resultados)}")  # ← aqui
 
-    itens_frame = []
     frame_anotado = frame.copy()
 
     for resultado in resultados:
-        # Desenha caixas e nomes detectados
         frame_anotado = resultado.plot()
+        frame_anotado = np.ascontiguousarray(frame_anotado)
 
-        # MUITO IMPORTANTE:
-        # transforma em array gravável para o OpenCV conseguir desenhar
-        frame_anotado = np.ascontiguousarray(frame_anotado).copy()
-
-        # Verifica se existem detecções
-        if resultado.boxes is not None and len(resultado.boxes) > 0:
-            classes_ids = resultado.boxes.cls.tolist()
+        print(f"resultado.boxes: {resultado.boxes}") 
+    
+        if resultado.boxes is not None:
+            print(f"Boxes detectadas: {len(resultado.boxes)}")
+            print(f"IDs: {resultado.boxes.id}")
+    
+            classes_ids = resultado.boxes.cls.int().tolist()
+            confiancas = resultado.boxes.conf.tolist()
             nomes = resultado.names
 
-            for cls_id in classes_ids:
-                itens_frame.append(nomes[int(cls_id)])
+            print(f"Classes: {classes_ids}, Confianças: {confiancas}")
+    
+            for cls_id, conf in zip(classes_ids, confiancas):  # ← indentado aqui dentro
+                nome_classe = nomes[cls_id]
+                agora = time.time()
+    
+                if nome_classe not in ultimo_envio or (agora - ultimo_envio[nome_classe]) > 3:
+                    enviar_ao_backend(nome_classe, conf)
+                    ultimo_envio[nome_classe] = agora
+    
+    # Exibe informações na tela (opcional)
+    cv2.putText(frame_anotado, f"Equipe: {EQUIPE_ATIVA} | Itens: {len(ids_enviados)}", 
+                (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-    contagem = Counter(itens_frame)
-
-    altura_caixa = max(120, 40 + len(contagem) * 30)
-    cv2.rectangle(frame_anotado, (10, 10), (500, altura_caixa), (0, 0, 0), -1)
-
-    cv2.putText(frame_anotado, "Contagem de Itens:", (20, 35),
-                cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
-
-    y_pos = 70
-    if len(contagem) == 0:
-        cv2.putText(frame_anotado, "Nenhum item detectado", (20, y_pos),
-                    cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 255, 255), 2)
-    else:
-        for item, quantidade in contagem.items():
-            texto_contagem = f"{item}: {quantidade} unidade(s)"
-            cv2.putText(frame_anotado, texto_contagem, (20, y_pos),
-                        cv2.FONT_HERSHEY_COMPLEX, 0.7, (255, 255, 255), 2)
-            y_pos += 30
-    cv2.imshow("Contador de Itens com YOLO", frame_anotado)
+    cv2.imshow("LE - Contagem Inteligente (Integrado)", frame_anotado)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

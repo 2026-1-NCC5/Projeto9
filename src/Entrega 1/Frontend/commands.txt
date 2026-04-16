@@ -1,0 +1,5 @@
+criar ambiente virtual
+venv\Scripts\activate
+
+rodar a câmera
+python identificador.py
