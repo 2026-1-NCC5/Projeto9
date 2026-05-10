@@ -27,6 +27,12 @@ if not camera.isOpened():
 print("Iniciando câmera... Pressione 'q' para sair.")
 
 # =========================
+# CONFIG SERVIDOR
+# =========================
+
+URL_SERVIDOR = "http://localhost:3000/itens"
+
+# =========================
 # CALIBRAÇÃO DA PLATAFORMA
 # =========================
 
@@ -58,6 +64,7 @@ matriz_medidas, _ = cv2.findHomography(
 
 estado = "SEM_OBJETO"
 
+
 frames_estaveis = 0
 frames_sem_objeto = 0
 
@@ -69,6 +76,70 @@ FRAMES_SEM_OBJETO = 10
 
 # Contagem total real
 contagem_total = {}
+
+# =========================
+# CONTROLE DE CONFIRMAÇÃO
+# =========================
+
+item_pendente = None
+
+historico_confirmados = []
+mensagem_feedback = ""
+
+# =========================
+# FUNÇÃO DE ENVIO
+# =========================
+
+def enviar_para_servidor(item_completo):
+
+    try:
+
+        partes = item_completo.split()
+
+        peso = partes[-1]
+
+        nome_item = " ".join(partes[:-1])
+
+        dados = {
+            "item": nome_item,
+            "peso": peso,
+            "quantidade": 1,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        resposta = requests.post(
+            URL_SERVIDOR,
+            json=dados,
+            timeout=3
+        )
+
+        print(f"ENVIADO -> {dados}")
+        print(f"STATUS -> {resposta.status_code}")
+
+        dados_resposta = resposta.json()
+
+        print(dados_resposta)
+        id_servidor = dados_resposta["id"]
+
+        return id_servidor
+
+    except Exception as erro:
+
+        print(f"ERRO AO ENVIAR: {erro}")
+
+def deletar_do_servidor(id_item):
+
+    try:
+
+        url_delete = f"http://localhost:3000/itens/{id_item}"
+
+        resposta = requests.delete(url_delete)
+
+        print(f"DELETE STATUS: {resposta.status_code}")
+
+    except Exception as erro:
+
+        print(f"ERRO DELETE: {erro}")
 
 # =========================
 # LOOP PRINCIPAL
@@ -254,9 +325,10 @@ while True:
                 if item_atual not in contagem_total:
                     contagem_total[item_atual] = 0
 
-                contagem_total[item_atual] += 1
+                # ITEM AGORA FICA PENDENTE
+                item_pendente = item_atual
 
-                print(f"ITEM CONTADO: {item_atual}")
+                print(f"ITEM PENDENTE: {item_pendente}")
 
                 estado = "OBJETO_CONTADO"
 
@@ -319,6 +391,14 @@ while True:
 
     # Estado atual
     cv2.putText(frame_anotado,
+            "C=Confirmar | R=Rejeitar | U=Undo | Q=Sair",
+            (20, y_pos + 60),
+            cv2.FONT_HERSHEY_COMPLEX,
+            0.6,
+            (255, 255, 0),
+            2)
+    
+    cv2.putText(frame_anotado,
                 f"Estado: {estado}",
                 (20, y_pos + 20),
                 cv2.FONT_HERSHEY_COMPLEX,
@@ -327,12 +407,166 @@ while True:
                 2)
 
     # =========================
+    # ITEM PENDENTE
+    # =========================
+
+    if item_pendente is not None:
+
+        cv2.rectangle(
+            frame_anotado,
+            (600, 20),
+            (1200, 140),
+            (0, 0, 0),
+            -1
+        )
+
+        cv2.putText(
+            frame_anotado,
+            "ITEM PENDENTE",
+            (620, 60),
+            cv2.FONT_HERSHEY_COMPLEX,
+            0.9,
+            (0, 255, 255),
+            2
+        )
+
+        cv2.putText(
+            frame_anotado,
+            item_pendente,
+            (620, 100),
+            cv2.FONT_HERSHEY_COMPLEX,
+            0.8,
+            (255, 255, 255),
+            2
+        )
+
+        cv2.putText(
+            frame_anotado,
+            "C = Confirmar | R = Rejeitar",
+            (620, 130),
+            cv2.FONT_HERSHEY_COMPLEX,
+            0.7,
+            (0, 255, 0),
+            2
+        )
+
+    # =========================
+    # FEEDBACK VISUAL
+    # =========================
+
+    if mensagem_feedback != "":
+
+        cv2.rectangle(
+            frame_anotado,
+            (600, 160),
+            (1200, 220),
+            (0, 0, 0),
+            -1
+        )
+
+        cv2.putText(
+            frame_anotado,
+            mensagem_feedback,
+            (620, 200),
+            cv2.FONT_HERSHEY_COMPLEX,
+            0.8,
+            (0, 0, 255),
+            2
+        )
+
+    # =========================
     # EXIBIR TELA
     # =========================
+
     cv2.imshow("Contador Inteligente YOLO", frame_anotado)
 
-    # Sair
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+    tecla = cv2.waitKey(1) & 0xFF
+
+    # =========================
+    # CONFIRMAR ITEM
+    # =========================
+    if tecla == ord('c'):
+
+        if item_pendente is not None:
+
+            # Soma contagem
+            if item_pendente not in contagem_total:
+                contagem_total[item_pendente] = 0
+
+            contagem_total[item_pendente] += 1
+
+           # Envia servidor
+            id_servidor = enviar_para_servidor(item_pendente)
+
+            # Guarda histórico completo
+            historico_confirmados.append({
+                "nome": item_pendente,
+                "id": id_servidor
+            })
+
+            print(f"ITEM CONFIRMADO: {item_pendente}")
+
+            item_pendente = None
+
+    # =========================
+    # REJEITAR ITEM
+    # =========================
+    elif tecla == ord('r'):
+
+        if item_pendente is not None:
+
+            print(f"ITEM REJEITADO: {item_pendente}")
+
+            item_pendente = None
+
+    # =========================
+    # UNDO ÚLTIMO ITEM
+    # =========================
+    elif tecla == ord('u'):
+
+        if len(historico_confirmados) > 0:
+
+            ultimo = historico_confirmados.pop()
+
+            if isinstance(ultimo, str):
+
+                ultimo_item = ultimo
+                id_item = None
+
+            else:
+
+                ultimo_item = ultimo["nome"]
+                id_item = ultimo["id"]
+
+                ultimo_item = ultimo["nome"]
+
+                id_item = ultimo["id"]
+
+            # Remove da contagem
+            if ultimo_item in contagem_total:
+
+                contagem_total[ultimo_item] -= 1
+
+                # Remove item zerado
+                if contagem_total[ultimo_item] <= 0:
+                    del contagem_total[ultimo_item]
+
+            # Remove do servidor
+            if id_item is not None:
+                deletar_do_servidor(id_item)
+
+            mensagem_feedback = f"UNDO: {ultimo_item}"
+
+            print(f"UNDO REALIZADO: {ultimo_item}")
+
+        else:
+
+            mensagem_feedback = "Nada para desfazer"
+
+    # =========================
+    # FECHAR
+    # =========================
+    elif tecla == ord('q'):
         break
 
 # =========================
