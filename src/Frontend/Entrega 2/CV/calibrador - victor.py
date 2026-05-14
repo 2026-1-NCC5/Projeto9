@@ -37,7 +37,7 @@ def executar_calibracao(indice_camera=3):
     global imagem_exibicao
     
     print(f"Acessando a câmera (Índice {indice_camera})... Aguarde.")
-    camera = cv2.VideoCapture(indice_camera)
+    camera = cv2.VideoCapture(0)
     
     # Lê alguns frames iniciais para permitir que o sensor da câmera ajuste o foco e a luz
     for _ in range(10): 
