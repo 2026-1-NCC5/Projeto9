@@ -1,9 +1,3 @@
-```sh
-Utilize o site <https://www.toptal.com/developers/gitignore> para gerar seu arquivo gitignore e apague este campo.
-
-Vide tutoriais do PI.
-```
-
 # FECAP - Fundação de Comércio Álvares Penteado
 
 <p align="center">
@@ -21,99 +15,40 @@ Vide tutoriais do PI.
 ## Descrição
 
 <p align="center">
-<img src="https://pix4free.org/assets/library/2021-01-20/originals/game.jpg" alt="NOME DO JOGO" border="0">
-  Game by <a href="http://www.nyphotographic.com/">Nick Youngson</a> <a rel="license" href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a> <a href="http://pix4free.org/">Pix4free</a>
+Projeto feito por <a>RivoTrio</a> <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> <a href="http://pix4free.org/">Pix4free</a>
 </p>
 
 
-De um a dois parágrafos sobre o que é seu projeto e o que ele faz.
-<br><br>
-Meu projeto ajuda estudantes FECAP a configurarem seus githubs.
-<br><br>
-May the force be with you!
-<br><br>
-
-## 🛠 Estrutura de pastas
-
--Raiz<br>
-|<br>
-|-->documentos<br>
-  &emsp;|-->antigos<br>
-  &emsp;|Documentação.docx<br>
-|-->executáveis<br>
-  &emsp;|-->windows<br>
-  &emsp;|-->android<br>
-  &emsp;|-->HTML<br>
-|-->imagens<br>
-|-->src<br>
-  &emsp;|-->Backend<br>
-  &emsp;|-->Frontend<br>
-|readme.md<br>
-
-A pasta raiz contem dois arquivos que devem ser alterados:
-
-<b>README.MD</b>: Arquivo que serve como guia e explicação geral sobre seu projeto. O mesmo que você está lendo agora.
-
-Há também 4 pastas que seguem da seguinte forma:
-
-<b>documentos</b>: Toda a documentação estará nesta pasta.
-
-<b>executáveis</b>: Binários e executáveis do projeto devem estar nesta pasta.
-
-<b>imagens</b>: Imagens do sistema
-
-<b>src</b>: Pasta que contém o código fonte.
+O projeto Tecnologias Empáticas utiliza visão computacional para automatizar a contagem e pesagem de alimentos não perecíveis arrecadados pelo Lideranças Empáticas. No centro da solução está uma câmera que, em tempo real, identifica os produtos, conta as unidades e registra o peso de cada doação — tudo sem intervenção manual. Esses dados são enviados a um backend desenvolvido em FastAPI, que gerencia o cadastro e login dos voluntários, armazena as informações com segurança e alimenta os dashboards da plataforma.
+A interface web, construída em React, centraliza tudo o que foi arrecadado em gráficos e indicadores acessíveis em tempo real. Além do controle operacional, o sistema conta com um ranking de equipes: ao fazer login, cada voluntário seleciona o número do seu grupo, e a plataforma acumula automaticamente os quilos registrados por cada time, exibindo uma classificação ao vivo. Isso transforma a ferramenta em um elemento de engajamento, incentivando as equipes a arrecadarem cada vez mais durante a campanha.
 
 ## 🛠 Instalação
 
-<b>Android:</b>
+</head>
+<body>
 
-Faça o Download do JOGO.apk no seu celular.
-Execute o APK e siga as instruções de seu telefone.
+  <h2>Backend</h2>
+  <ul>
+    <li><code>cd backend</code></li>
+    <li><code>python -m venv venv</code></li>
+    <li><code>.\venv\Scripts\activate</code> (no Windows)</li>
+    <li><code>pip install -r requirements.txt</code></li>
+    <li><code>uvicorn app.main:app --reload</code></li>
+  </ul>
 
-```sh
-Coloque código do prompt de comnando se for necessário
-```
+  <h2>Frontend</h2>
+  <ul>
+    <li><code>cd frontend/webpage</code></li>
+    <li><code>npm install</code></li>
+    <li><code>npm run dev</code></li>
+  </ul>
 
-<b>Windows:</b>
+  <h2>Visão Computacional</h2>
+  <ul>
+    <li><code>cd vision/CV</code></li>
+    <li><code>pip install -r requirements.txt</code></li>
+    <li><code>python identificador.py</code></li>
+  </ul>
 
-Não há instalação! Apenas executável!
-Encontre o JOGO.exe na pasta executáveis e execute-o como qualquer outro programa.
-
-```sh
-Coloque código do prompt de comnando se for necessário
-```
-
-<b>HTML:</b>
-
-Não há instalação!
-Encontre o index.html na pasta executáveis e execute-o como uma página WEB (através de algum browser).
-
-## 💻 Configuração para Desenvolvimento
-
-Descreva como instalar todas as dependências para desenvolvimento e como rodar um test-suite automatizado de algum tipo. Se necessário, faça isso para múltiplas plataformas.
-
-Para abrir este projeto você necessita das seguintes ferramentas:
-
--<a href="https://godotengine.org/download">GODOT</a>
-
-```sh
-make install
-npm test
-Coloque código do prompt de comnando se for necessário
-```
-
-## 📋 Licença/License
-Utilize o link <https://chooser-beta.creativecommons.org/> para fazer uma licença CC BY 4.0.
-
-## 🎓 Referências
-
-Aqui estão as referências usadas no projeto.
-
-1. <https://github.com/iuricode/readme-template>
-2. <https://github.com/gabrieldejesus/readme-model>
-3. <https://chooser-beta.creativecommons.org/>
-4. <https://freesound.org/>
-5. <https://www.toptal.com/developers/gitignore>
-6. Músicas por: <a href="https://freesound.org/people/DaveJf/sounds/616544/"> DaveJf </a> e <a href="https://freesound.org/people/DRFX/sounds/338986/"> DRFX </a> ambas com Licença CC 0.
+</body>
 
