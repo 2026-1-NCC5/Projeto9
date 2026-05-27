@@ -38,10 +38,10 @@ URL_SERVIDOR = "http://localhost:3000/itens"
 
 # TROQUE PELOS PONTOS DO SEU CALIBRADOR
 pontos_imagem_pixel = np.array([
-    [203, 67],
-    [554, 61],
-    [583, 414],
-    [164, 399]
+    [140, 143],
+    [447, 138],
+    [468, 445],
+    [116, 448]
 ], dtype="float32")
 
 # Quadrado real de 30cm x 30cm

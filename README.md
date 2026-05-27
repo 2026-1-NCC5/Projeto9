@@ -10,9 +10,9 @@ Vide tutoriais do PI.
 <a href= "https://www.fecap.br/"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRhZPrRa89Kma0ZZogxm0pi-tCn_TLKeHGVxywp-LXAFGR3B1DPouAJYHgKZGV0XTEf4AE&usqp=CAU" alt="FECAP - Fundação de Comércio Álvares Penteado" border="0"></a>
 </p>
 
-# Nome do Projeto
+# Tecnologias Empáticas
 
-## Nome do Grupo
+## RivoTrio
 
 ## Integrantes: <a href="https://www.linkedin.com/in/gabriel-davan%C3%A7o-5543992b8/">Gabriel Debastiani Davanço</a>, <a href="https://www.linkedin.com/in/guilherme-costa-2854a421a/">Guilherme Melo da Costa</a>, <a href="https://www.linkedin.com/in/isadora-t-santoma-580441335/">Dante Teixeira Santoma</a>, <a href="https://www.linkedin.com/in/ricardo-tetsuya-1b25271b0/">Ricardo Liyudi Tetsuya</a>
 
